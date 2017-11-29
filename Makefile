@@ -398,6 +398,7 @@ define BUILD
     COMMAND_true_$$(COMMAND) := \
         printf "$$(MAKE_MSG)" | \
         $$(MAKE_MSG_FORMAT); \
+        printf "$$(MAKE_CMD) $$(MAKE_VARS) SILENT=true 2>&1" \
         LOG=$$$$($$(MAKE_CMD) $$(MAKE_VARS) SILENT=true 2>&1) ; \
         if [ $$$$? -gt 0 ]; \
             then $$(PRINT_ERROR_PLAIN); \
@@ -426,7 +427,9 @@ define BUILD_TEST
     MAKE_CMD := $$(MAKE) -r -R -C $(ROOT_DIR) -f build_test.mk $$(MAKE_TARGET)
     MAKE_VARS := TEST=$$(TEST_NAME) FULL_TESTS="$$(FULL_TESTS)"
     MAKE_MSG := $$(MSG_MAKE_TEST)
+    $$(info BUILD_TEST MAKE_CMD $$(MAKE_CMD) MAKE_VARS $$(MAKE_VARS) MAKE_MSG $$(MAKE_MSG) $$(MAKE_MSG))
     $$(eval $$(call BUILD))
+    $$(info eval BUILD)
     ifneq ($$(MAKE_TARGET),clean)
         TEST_EXECUTABLE := $$(TEST_DIR)/$$(TEST_NAME).elf
         TESTS += $$(TEST_NAME)
@@ -439,12 +442,14 @@ define BUILD_TEST
             fi; \
             printf "\n";
     endif
+    $$(info end BUILD_TEST)
 endef
 
 define PARSE_TEST
     TESTS :=
     TEST_NAME := $$(firstword $$(subst -, ,$$(RULE)))
     TEST_TARGET := $$(subst $$(TEST_NAME),,$$(subst $$(TEST_NAME)-,,$$(RULE)))
+    $$(info parse_test rule $$(RULE) test_name $$(TEST_NAME) test_target $$(TEST_TARGET))
     ifeq ($$(TEST_NAME),all)
         MATCHED_TESTS := $$(TEST_LIST)
     else
@@ -478,6 +483,7 @@ endif
 # The empty line is important here, as it will force a new shell to be created for each command
 # Otherwise the command line will become too long with a lot of keyboards and keymaps
 define RUN_COMMAND
+$(info COMMAND_$(SILENT_MODE)_$(COMMAND))
 +error_occurred=0;\
 $(COMMAND_$(SILENT_MODE)_$(COMMAND))\
 if [ $$error_occurred -gt 0 ]; then $(HANDLE_ERROR); fi;
@@ -485,6 +491,7 @@ if [ $$error_occurred -gt 0 ]; then $(HANDLE_ERROR); fi;
 
 endef
 define RUN_TEST
+$(info $(TEST)_COMMAND)
 +error_occurred=0;\
 $($(TEST)_COMMAND)\
 if [ $$error_occurred -gt 0 ]; then $(HANDLE_ERROR); fi;
@@ -493,7 +500,7 @@ if [ $$error_occurred -gt 0 ]; then $(HANDLE_ERROR); fi;
 endef
 
 # Allow specifying just the subproject, in the keyboard directory, which will compile all keymaps
-SUBPROJECTS := $(notdir $(patsubst %/Makefile,%,$(wildcard ./*/Makefile)))
+SUBPROJECTS := $(notdir $(patsfcaubst %/Makefile,%,$(wildcard ./*/Makefile)))
 .PHONY: $(SUBPROJECTS)
 $(SUBPROJECTS): %: %-allkm
 

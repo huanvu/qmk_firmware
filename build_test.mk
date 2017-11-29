@@ -1,7 +1,3 @@
-ifndef VERBOSE
-.SILENT:
-endif
-
 .DEFAULT_GOAL := all
 
 include common.mk
@@ -64,4 +60,3 @@ include $(TMK_PATH)/rules.mk
 
 $(shell mkdir -p $(BUILD_DIR)/test 2>/dev/null)
 $(shell mkdir -p $(TEST_OBJ) 2>/dev/null)
-
